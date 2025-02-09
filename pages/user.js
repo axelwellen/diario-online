@@ -189,7 +189,7 @@ export default function UserSettings() {
 
       <h3>Edit Username</h3>
       <input type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} />
-      <button onClick={handleUpdateUsername}>Save Username</button>
+      <button onClick={handleUpdateUsername}>Save</button>
 
       <h3>Edit Diary Settings</h3>
       <input type="text" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} />
@@ -197,8 +197,30 @@ export default function UserSettings() {
         <input type="checkbox" checked={isPrivate} onChange={() => setIsPrivate(!isPrivate)} />
         Private Diary
       </label>
-      <button onClick={handleUpdateDiary}>Save Changes</button>
+      <button onClick={handleUpdateDiary}>Save</button>
 
+      <h3>Pending Subscription Requests</h3>
+        {/* 🔥 Notificación de solicitudes pendientes de suscripción 🔥 */}
+        {subscriptionRequests.length > 0 && (
+        <div style={{ background: "yellow", padding: "10px", margin: "10px 0", borderRadius: "5px" }}>
+          🛎️ You have {subscriptionRequests.length} pending subscription requests!
+        </div>
+      )}
+      {subscriptionRequests.length === 0 ? (
+        <p>No pending requests.</p>
+      ) : (
+        subscriptionRequests.map(request => (
+          <div key={request.id} style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
+            <p>👤 {request.username} wants to subscribe</p>
+            <button onClick={() => approveSubscription(request.id, request.userId)} style={{ background: "green", color: "white" }}>
+              ✅ Approve
+            </button>
+            <button onClick={() => rejectSubscription(request.id)} style={{ background: "red", color: "white" }}>
+              ❌ Reject
+            </button>
+          </div>
+        ))
+      )}
       <h3>Subscribers</h3>
       {subscribers.length === 0 ? (
         <p>No subscribers yet.</p>
@@ -212,6 +234,8 @@ export default function UserSettings() {
           </div>
         ))
       )}
+      
+
     </div>
   );
 }
