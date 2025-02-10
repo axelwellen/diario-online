@@ -177,7 +177,7 @@ export default function UserSettings() {
   if (loading || !diaryId) return <p>Loading settings...</p>;
 
   return (
-    <div>
+    <div className="container">
       <nav style={{ display: "flex", justifyContent: "space-between", padding: "10px", background: "#eee" }}>
         <h2>⚙️ User Settings</h2>
         <div>
@@ -192,12 +192,33 @@ export default function UserSettings() {
       <button onClick={handleUpdateUsername}>Save</button>
 
       <h3>Edit Diary Settings</h3>
-      <input type="text" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} />
-      <label>
-        <input type="checkbox" checked={isPrivate} onChange={() => setIsPrivate(!isPrivate)} />
-        Private Diary
-      </label>
-      <button onClick={handleUpdateDiary}>Save</button>
+
+<div style={{ display: "flex", flexDirection: "column", gap: "10px", alignItems: "flex-start", maxWidth: "400px" }}>
+  <input
+    type="text"
+    value={newTitle}
+    onChange={(e) => setNewTitle(e.target.value)}
+    placeholder="Diary Title"
+    style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc" }}
+  />
+
+  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+    <input 
+      type="checkbox" 
+      checked={isPrivate} 
+      onChange={() => setIsPrivate(!isPrivate)} 
+      style={{ width: "18px", height: "18px" }} 
+    />
+    <label>Private Diary</label>
+  </div>
+
+  <button 
+    onClick={handleUpdateDiary} 
+  >
+    Save
+  </button>
+</div>
+
 
       <h3>Pending Subscription Requests</h3>
         {/* 🔥 Notificación de solicitudes pendientes de suscripción 🔥 */}

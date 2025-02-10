@@ -58,9 +58,29 @@ export default function Diary() {
     const entriesRef = collection(db, "diaries", diaryId, "entries");
     const q = query(entriesRef, orderBy("date", "desc")); // 🔥 Ordenar por fecha descendente
     const entriesSnap = await getDocs(q);
+
+    let entriesList = entriesSnap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        likedBy: doc.data().likedBy || [],
+        comments: [] // ✅ Inicializamos los comentarios
+    }));
+
+    // 🔥 Obtener comentarios para cada entrada
+    for (let entry of entriesList) {
+        const commentsRef = collection(db, "diaries", diaryId, "entries", entry.id, "comments");
+        const commentsSnap = await getDocs(commentsRef);
+
+        entry.comments = commentsSnap.docs.map(commentDoc => ({
+            id: commentDoc.id,
+            ...commentDoc.data()
+        }));
+    }
+
+    setEntries(entriesList);
+};
+
   
-    setEntries(entriesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-  };
 
   const checkUnreadCorrections = async (diaryId) => {
     const entriesRef = collection(db, "diaries", diaryId, "entries");
@@ -148,72 +168,83 @@ export default function Diary() {
   if (loading) return <p>Loading session...</p>;
 
   return (
-    <div>
+    <div className="container">
       {/* 🔥 MENÚ SUPERIOR CON NOTIFICACIÓN 🔥 */}
-      <nav style={{ display: "flex", justifyContent: "space-between", padding: "10px", background: "#eee" }}>
+      <nav>
         <h2>📖 My Diary</h2>
         <div>
           <button onClick={() => router.push("/explore")}>🔍 Explore</button>
           <button onClick={() => router.push("/user")}>
             ⚙️ Settings {hasPendingRequests && "🛎️"}
           </button>
-          <button onClick={handleLogout} style={{ background: "red", color: "white" }}>🚪 Logout</button>
+          <button onClick={handleLogout} className="logout-btn">🚪 Logout</button>
         </div>
       </nav>
-        {/* 🔥 Notificación de correcciones pendientes 🔥 */}
-    {unreadCorrections.length > 0 && (
-            <div style={{ background: "lightblue", padding: "10px", margin: "10px 0", borderRadius: "5px" }}>
-            📌 You have unread corrections! <button onClick={navigateToLatestUnreadCorrection}>Review now</button>
-            </div>
-        )}
+  
+      {/* 🔥 Notificación de correcciones pendientes 🔥 */}
+      {unreadCorrections.length > 0 && (
+        <div className="alert alert-info">
+          📌 You have unread corrections! <button onClick={navigateToLatestUnreadCorrection}>Review now</button>
+        </div>
+      )}
+  
       {/* 🔥 Mostrar Alerta de Peticiones de Suscripción 🔥 */}
       {hasPendingRequests && (
-        <div style={{ background: "yellow", padding: "10px", margin: "10px 0", borderRadius: "5px" }}>
+        <div className="alert alert-warning">
           🛎️ You have pending subscription requests! Check your <button onClick={() => router.push("/user")}>Settings</button>
         </div>
       )}
-
-    {diary ? (
+  
+      {diary ? (
         <>
           <h3>{diary.title}</h3>
-          <p>{diary.private ? "🔒 Private" : "🌍 Public"}</p>
           <button onClick={() => router.push("/entry")}>📝 New Entry</button>
-        
+  
           <h4>Diary ID: {diaryId}</h4>
           <button onClick={copyToClipboard}>📋 Copy ID</button>
-
+  
           <h3>Entries:</h3>
           {entries.length === 0 ? <p>No entries yet.</p> : (
             entries.map(entry => (
-              <div key={entry.id} 
-                style={{ 
-                  border: "1px solid #ccc", 
-                  padding: "10px", 
-                  margin: "10px 0",
-                  background: unreadCorrections.includes(entry.id) ? "#ffebcc" : "white" // 🔥 Resaltar entradas con corrección pendiente
-                }}
-              >
-                <p><strong>Date:</strong> {entry.date?.toDate().toLocaleString()}</p>
-                <p><strong>Content:</strong> {entry.content}</p>
-                <button onClick={() => router.push(`/entry/${entry.id}`)}>✏️ Edit</button>
-                {unreadCorrections.includes(entry.id) && <span style={{ color: "red", marginLeft: "10px" }}>🔔 Pending Review</span>}
-              </div>
-            ))
-          )}
+                <div key={entry.id} className={`card ${unreadCorrections.includes(entry.id) ? "highlight" : ""}`}>
+                    <p><strong>Date:</strong> {entry.date?.toDate().toLocaleString()}</p>
+                    <p><strong>Content:</strong> {entry.content}</p>
+
+                    {/* 🔥 Mostrar cantidad de likes */}
+                    <h4>❤️ {entry.likedBy.length} Likes</h4>
+
+                    {/* 🔥 Mostrar comentarios si existen */}
+                    <h4>💬 Comments</h4>
+                    {entry.comments.length === 0 ? (
+                        <p>No comments yet.</p>
+                    ) : (
+                        entry.comments.map(comment => (
+                            <div key={comment.id} className="comment-box">
+                                <p><strong>{comment.username}:</strong> {comment.text}</p>
+                            </div>
+                        ))
+                    )}
+
+                    <button onClick={() => router.push(`/entry/${entry.id}`)}>✏️ Edit</button>
+                    {unreadCorrections.includes(entry.id) && <span className="pending-review">🔔 Pending Review</span>}
+                  </div>
+                 ))
+                )}
+
         </>
       ) : (
         <p>Loading diary...</p>
       )}
-
+  
       <h3>Subscribed Diaries</h3>
       {subscriptionDetails.length === 0 ? (
         <p>You are not subscribed to any diaries.</p>
       ) : (
         subscriptionDetails.map((diary) => (
-          <div key={diary.id} style={{ display: "flex", alignItems: "center", gap: "10px", border: "1px solid #ddd", padding: "10px", margin: "10px 0" }}>
+          <div key={diary.id} className="card">
             <p>📖 <strong>{diary.title}</strong> by <em>{diary.username}</em></p>
             <button onClick={() => router.push(`/diary/${diary.id}`)}>View</button>
-            <button onClick={() => cancelSubscription(diary.id)} style={{ background: "gray", color: "white" }}>
+            <button onClick={() => cancelSubscription(diary.id)} className="unsubscribe-btn">
               Unsubscribe
             </button>
           </div>
@@ -221,4 +252,5 @@ export default function Diary() {
       )}
     </div>
   );
+  
 }

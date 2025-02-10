@@ -95,7 +95,7 @@ export default function CorrectEntry() {
   if (loading || !diaryId) return <p>Loading...</p>;
 
   return (
-    <div>
+    <div className="container">
       {/* 🔥 MENÚ SUPERIOR 🔥 */}
       <nav style={{ display: "flex", justifyContent: "space-between", padding: "10px", background: "#eee" }}>
         <h2>✏️ Correct Entry</h2>

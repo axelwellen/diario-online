@@ -55,7 +55,7 @@ export default function Register() {
   };
 
   return (
-    <div>
+    <div className="container">
       <h2>Register</h2>
       <input type="text" placeholder="Username" onChange={(e) => setUsername(e.target.value)} />
       <input type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} />
@@ -64,17 +64,22 @@ export default function Register() {
       <h3>Choose a Diary Name</h3>
       <input type="text" placeholder="Diary Title" onChange={(e) => setDiaryTitle(e.target.value)} />
 
-      <label>
-        <input
-          type="checkbox"
-          checked={isPrivate}
-          onChange={() => setIsPrivate(!isPrivate)}
-        />
-        Private Diary
-      </label>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px", margin: "10px 0" }}>
+  <label style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "1rem" }}>
+  Private Diary: 
+    <input
+      type="checkbox"
+      checked={isPrivate}
+      onChange={() => setIsPrivate(!isPrivate)}
+      style={{ width: "16px", height: "16px" }}
+    />
+    
+  </label>
+</div>
 
-      <button onClick={handleRegister}>Register & Create Diary</button>
-      <button onClick={() => router.push("/login")}>Go to Login</button>
+<button onClick={handleRegister} className="button-primary">Register & Create Diary</button>
+<button onClick={() => router.push("/login")} className="button-secondary">Go to Login</button>
+
     </div>
   );
 }

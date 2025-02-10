@@ -94,7 +94,7 @@ export default function Entry() {
   if (loading || !diaryId) return <p>Loading...</p>;
 
   return (
-    <div>
+    <div className="container">
       <nav style={{ display: "flex", justifyContent: "space-between", padding: "10px", background: "#eee" }}>
         <h2>{isEditing ? "✏️ Edit Entry" : "📝 New Entry"}</h2>
         <div>

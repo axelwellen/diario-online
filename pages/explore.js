@@ -70,15 +70,22 @@ export default function Explore() {
       return;
     }
 
+    // 🔥 Obtener el username desde la base de datos
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
+  
+    let username = userSnap.exists() ? userSnap.data().username : user.email; // Preferir username si existe
+  
     const requestsRef = collection(db, "diaries", diaryId, "subscription_requests");
     await addDoc(requestsRef, {
       userId: user.uid,
-      username: user.displayName || user.email,
+      username: username, // ✅ Ahora siempre guardamos el username correcto
       status: "pending",
     });
-
+  
     alert("Subscription request sent!");
   };
+  
 
   const subscribeToDiary = async (diaryId) => {
     if (!user) {
@@ -108,7 +115,7 @@ export default function Explore() {
   if (loading) return <p>Loading...</p>;
 
   return (
-    <div>
+    <div className="container">
       {/* 🔥 MENÚ SUPERIOR 🔥 */}
       <nav style={{ display: "flex", justifyContent: "space-between", padding: "10px", background: "#eee" }}>
         <h2>🔍 Explore Diaries</h2>
