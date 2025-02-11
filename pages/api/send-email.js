@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY); // ✅ Asegurar que está en Vercel
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -15,7 +15,7 @@ export default async function handler(req, res) {
 
   try {
     await resend.emails.send({
-      from: "no-reply@tudiario.com",
+      from: "diarliidiary@gmail.com",  // ✅ Usando email verificado
       to,
       subject,
       html: `<p>${message}</p>`,
@@ -23,6 +23,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ success: "Email sent successfully" });
   } catch (error) {
+    console.error("Error sending email:", error);
     return res.status(500).json({ error: error.message });
   }
 }
