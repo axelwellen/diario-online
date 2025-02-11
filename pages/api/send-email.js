@@ -15,7 +15,7 @@ export default async function handler(req, res) {
 
   try {
     await resend.emails.send({
-      from: "diarliidiary@gmail.com",  // ✅ Usando email verificado
+      from: "onboarding@resend.dev",  // ✅ Usando email verificado
       to,
       subject,
       html: `<p>${message}</p>`,
