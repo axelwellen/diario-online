@@ -18,7 +18,7 @@ body {
 
 /* 🔥 Contenedor principal */
 .container {
-  max-width: 850px;
+  max-width: 950px;
   margin: auto;
   background: white;
   padding: 25px;
@@ -130,35 +130,93 @@ input:focus, textarea:focus {
   font-weight: bold;
   color: #d17a00;
 }
-
+.button-delete {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+    margin-left: 10px;
+    transition: background 0.3s;
+  }
+  
+  .button-delete:hover {
+    background-color: #c0392b;
+  }
+  .button-like {
+    background-color: #ddd; /* Color normal */
+    color: black;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: background 0.3s, transform 0.1s;
+  }
+  
+  .button-like:hover {
+    background-color: #c7a6db; /* Color al pasar el cursor */
+  }
+  
+  /* 🔥 Aquí es donde el botón cambia cuando tiene Like */
+  .button-like.liked {
+    background-color: #7c4ba0; /* Color cuando está activado */
+    color: white;
+    transform: scale(1.05); /* Pequeño efecto visual */
+  }
+  
 /* 🔥 Responsivo (Móvil) */
 @media (max-width: 768px) {
-  .container {
-    width: 95%;
-    padding: 18px;
-  }
 
-  nav {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  h1 {
-    font-size: 1.8rem;
-  }
-
-  h2 {
-    font-size: 1.6rem;
-  }
+      nav {
+        flex-direction: column; /* 🔥 Alinear los botones en columna */
+        text-align: center;
+        padding: 15px 0;
+      }
+    
+      nav h2 {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+      }
+    
+      nav div {
+        display: flex;
+        flex-direction: column; /* 🔥 Alinear los botones verticalmente */
+        gap: 10px; /* 🔥 Separación entre botones */
+        width: 100%;
+      }
+    
+      nav button {
+        width: 90%; /* 🔥 Hacer que los botones ocupen más ancho */
+        font-size: 18px; /* 🔥 Hacerlos más legibles */
+        padding: 12px; /* 🔥 Área de toque más grande */
+      }
+    
+      .logout-btn {
+        background: red;
+        color: white;
+        font-size: 16px;
+        padding: 12px;
+        border-radius: 12px;
+      }
+    
+      .logout-btn:hover {
+        background: darkred;
+      }
   /* 🔥 Contenedor principal */
-.container {
-    max-width: 850px;
-    margin: auto;
-    background: white;
-    padding: 25px;
-    border-radius: 20px;
-    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.15);
-  }
+    .container {
+        max-width: 850px;
+        margin: auto;
+        background: white;
+        padding: 25px;
+        border-radius: 20px;
+        box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.15);
+        max-width: 95vw; /* 🔥 Evita que quede demasiado estrecho en pantallas pequeñas */
+    }
   
   /* 🔥 Tarjetas de entradas y suscripciones */
   .card {
@@ -356,5 +414,28 @@ input:focus, textarea:focus {
   .button-delete:hover {
     background-color: #c0392b;
   }
-      
+  .button-like {
+    background-color: #ddd; /* Color normal */
+    color: black;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: background 0.3s, transform 0.1s;
+  }
+  
+  .button-like:hover {
+    background-color: #c7a6db; /* Color al pasar el cursor */
+  }
+  
+  /* 🔥 Aquí es donde el botón cambia cuando tiene Like */
+  .button-like.liked {
+    background-color: #7c4ba0; /* Color cuando está activado */
+    color: white;
+    transform: scale(1.05); /* Pequeño efecto visual */
+  }
+  
+    
 }

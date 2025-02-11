@@ -6,6 +6,8 @@ import { doc, collection, getDoc, getDocs, updateDoc, arrayUnion, arrayRemove, a
 import { signOut } from "firebase/auth";
 import { auth } from "../../lib/firebase";
 import { query, orderBy } from "firebase/firestore";
+import { deleteDoc } from "firebase/firestore"; // 🔥 Agrega esto
+
 
 export default function ViewDiary() {
   const { user, loading } = useAuth();
@@ -82,36 +84,40 @@ export default function ViewDiary() {
 };
 
 
-  const fetchComments = async (entriesList) => {
-    for (const entry of entriesList) {
-      const commentsRef = collection(db, "diaries", diaryId, "entries", entry.id, "comments");
-      const commentsSnap = await getDocs(commentsRef);
+const fetchComments = async (entriesList) => {
+  for (const entry of entriesList) {
+    const commentsRef = collection(db, "diaries", diaryId, "entries", entry.id, "comments");
+    const q = query(commentsRef, orderBy("timestamp", "asc")); // 🔥 Orden cronológico ascendente
+    const commentsSnap = await getDocs(q);
 
-      const comments = commentsSnap.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+    const comments = commentsSnap.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
 
-      setEntries(prevEntries =>
-        prevEntries.map(e =>
-          e.id === entry.id ? { ...e, comments } : e
-        )
-      );
-    }
-  };
+    setEntries(prevEntries =>
+      prevEntries.map(e =>
+        e.id === entry.id ? { ...e, comments } : e
+      )
+    );
+  }
+};
 
-  const handleLike = async (entryId, likedBy) => {
-    const entryRef = doc(db, "diaries", diaryId, "entries", entryId);
 
-    if (likedBy.includes(user.uid)) {
-      await updateDoc(entryRef, {
-        likedBy: arrayRemove(user.uid),
-      });
-    } else {
-      await updateDoc(entryRef, {
-        likedBy: arrayUnion(user.uid),
-      });
-    }
+const handleLike = async (entryId, likedBy) => {
+  const entryRef = doc(db, "diaries", diaryId, "entries", entryId);
+  const userLiked = likedBy.includes(user.uid);
+
+  // 🔥 Actualiza Firestore (Agregar o eliminar like)
+  if (userLiked) {
+    await updateDoc(entryRef, {
+      likedBy: arrayRemove(user.uid),
+    });
+  } else {
+    await updateDoc(entryRef, {
+      likedBy: arrayUnion(user.uid),
+    });
+  }
 
     fetchEntries(diaryId);
   };
@@ -164,11 +170,18 @@ export default function ViewDiary() {
       return;
     }
   
-    const commentRef = doc(db, "diaries", diaryId, "entries", entryId, "comments", commentId);
-    await deleteDoc(commentRef);
+    try {
+      const commentRef = doc(db, "diaries", diaryId, "entries", entryId, "comments", commentId);
+      await deleteDoc(commentRef);
   
-    fetchEntries(diaryId); // 🔄 Refrescar las entradas después de eliminar
+      // 🔄 Refrescar solo los comentarios de la entrada afectada
+      fetchComments([{ id: entryId }]);
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      alert("Failed to delete comment.");
+    }
   };
+  
   
   if (loading) return <p>Loading...</p>;
 
@@ -207,7 +220,7 @@ export default function ViewDiary() {
                 <button
                   onClick={() => handleLike(entry.id, entry.likedBy || [])}
                   className={`button-like ${entry.likedBy?.includes(user.uid) ? "liked" : ""}`}
-                >
+                > 
                   ❤️ Like {entry.likedBy?.length || 0}
                 </button>
                 <button onClick={() => router.push(`/correct/${entry.id}`)} className="button-correct">📝 Correct</button>

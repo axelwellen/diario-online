@@ -73,19 +73,52 @@ export default function CorrectEntry() {
     }
   };
 
+  const sendEmailNotification = async (to, subject, message) => {
+    try {
+      await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ to, subject, message }),
+      });
+    } catch (error) {
+      console.error("Error sending email:", error);
+    }
+  };
+  
   const handleSaveCorrection = async () => {
     if (!diaryId || !entryId || !correctedContent.trim()) return;
-
+  
     const correctionRef = doc(db, "diaries", diaryId, "entries", entryId, "corrections", user.uid);
     await setDoc(correctionRef, {
       content: correctedContent,
       correctedBy: user.uid,
       correctedAt: new Date(),
     });
-
-    alert("Correction saved!");
+  
+    // 🔥 Obtener el email del dueño del diario
+    const diaryRef = doc(db, "diaries", diaryId);
+    const diarySnap = await getDoc(diaryRef);
+  
+    if (!diarySnap.exists()) return;
+    const diaryOwnerId = diarySnap.data().userId;
+  
+    const ownerRef = doc(db, "users", diaryOwnerId);
+    const ownerSnap = await getDoc(ownerRef);
+  
+    if (!ownerSnap.exists()) return;
+    const ownerEmail = ownerSnap.data().email;
+  
+    // 🔥 Enviar el correo al dueño del diario
+    await sendEmailNotification(
+      ownerEmail,
+      "Someone corrected your diary entry!",
+      `User ${user.email} corrected your entry. Log in to see the changes.`
+    );
+  
+    alert("Correction saved and email sent!");
     router.push(`/diary/${diaryId}`);
   };
+  
 
   const handleLogout = async () => {
     await signOut(auth);
