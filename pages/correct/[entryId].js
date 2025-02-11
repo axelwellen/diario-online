@@ -72,14 +72,20 @@ export default function CorrectEntry() {
       router.push("/diary");
     }
   };
-
   const sendEmailNotification = async (to, subject, message) => {
     try {
-      await fetch("/api/send-email", {
+      const response = await fetch("/api/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ to, subject, message }),
       });
+  
+      const result = await response.json();
+      if (!response.ok) {
+        console.error("Failed to send email:", result);
+      } else {
+        console.log("Email sent successfully:", result);
+      }
     } catch (error) {
       console.error("Error sending email:", error);
     }
@@ -95,7 +101,7 @@ export default function CorrectEntry() {
       correctedAt: new Date(),
     });
   
-    // 🔥 Obtener el email del dueño del diario
+    // 🔥 Obtener el email y nombre del dueño del diario
     const diaryRef = doc(db, "diaries", diaryId);
     const diarySnap = await getDoc(diaryRef);
   
@@ -108,16 +114,29 @@ export default function CorrectEntry() {
     if (!ownerSnap.exists()) return;
     const ownerEmail = ownerSnap.data().email;
   
-    // 🔥 Enviar el correo al dueño del diario
-    await sendEmailNotification(
-      ownerEmail,
-      "Someone corrected your diary entry!",
-      `User ${user.email} corrected your entry. Log in to see the changes.`
-    );
+    // 🔥 Obtener el nombre del usuario que hizo la corrección
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
   
-    alert("Correction saved and email sent!");
+    const username = userSnap.exists() ? userSnap.data().username : "Unknown User";
+  
+    console.log("📨 Enviando correo a:", ownerEmail); // Verificar si obtenemos el email correctamente
+  
+    if (ownerEmail) {
+      await sendEmailNotification(
+        ownerEmail,
+        "Someone corrected your diary entry!",
+        `User <b>${username}</b> corrected your entry. Log in to see the changes.`
+      );
+  
+      alert("Correction saved and email sent!");
+    } else {
+      alert("Correction saved, but failed to send email (missing owner email).");
+    }
+  
     router.push(`/diary/${diaryId}`);
   };
+  
   
 
   const handleLogout = async () => {

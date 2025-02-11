@@ -168,7 +168,10 @@ input:focus, textarea:focus {
     color: white;
     transform: scale(1.05); /* Pequeño efecto visual */
   }
-  
+    /* 🔥 Resaltar entradas con correcciones pendientes */
+    .highlight {
+        background: #ffebcc;
+      }
 /* 🔥 Responsivo (Móvil) */
 @media (max-width: 768px) {
 

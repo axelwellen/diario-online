@@ -2,6 +2,8 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY); // ✅ Asegurar que está en Vercel
 
+//const resend = new Resend('re_5V3yS2kd_PzxYFAPZWp2vZZ5PziGMzBTU'); // ✅ 
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method Not Allowed" });
@@ -16,7 +18,7 @@ export default async function handler(req, res) {
   try {
     await resend.emails.send({
         from: 'Acme <onboarding@resend.dev>',
-        to: ['diarliidiary@gmail.com'],
+        to,
       subject,
       html: `<p>${message}</p>`,
     });
