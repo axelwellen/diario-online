@@ -31,26 +31,34 @@ export default function ViewDiary() {
   const fetchDiary = async () => {
     const diaryRef = doc(db, "diaries", diaryId);
     const diarySnap = await getDoc(diaryRef);
-
+  
     if (!diarySnap.exists()) {
       alert("This diary does not exist.");
       router.push("/diary");
       return;
     }
-
+  
     const diaryData = diarySnap.data();
-    setDiary({ id: diarySnap.id, ...diaryData });
-
+    setDiary({
+      id: diarySnap.id,
+      title: diaryData.title,
+      description: diaryData.description || "No description available.", // 🔥 Añadir descripción
+      language: diaryData.language || "Unknown", // 🔥 Asegurar que el idioma se guarda
+      private: diaryData.private,
+      ...diaryData
+    });
+  
     checkSubscription();
-
+  
     if (!diaryData.private) {
       setIsAuthorized(true);
       fetchEntries(diaryId);
       return;
     }
-
+  
     checkSubscription();
   };
+  
 
   const checkSubscription = async () => {
     const userRef = doc(db, "users", user.uid);
@@ -199,7 +207,12 @@ const handleLike = async (entryId, likedBy) => {
   
       {diary && isAuthorized ? (
         <>
-          <h2 className="title">{diary.title}</h2>
+          <h2 className="title">
+            {diary.title} 
+            <span style={{ fontSize: "0.8em", color: "#666" }}> ({diary.language || "Unknown"})</span>
+          </h2>
+
+          <p className="diary-description">{diary.description}</p> {/* 🔥 Mostrar la descripción */}
           <p className="privacy-status">{diary.private ? "🔒 Private Diary" : "🌍 Public Diary"}</p>
   
           {/* 🔥 Botón de Suscribirse/Desuscribirse */}
@@ -214,7 +227,12 @@ const handleLike = async (entryId, likedBy) => {
             entries.map(entry => (
               <div key={entry.id} className="card">
                 <p><strong>Date:</strong> {entry.date?.toDate().toLocaleString()}</p>
-                <p><strong>Content:</strong> {entry.content}</p>
+                {/* 🔥 Mostrar el título si existe */}
+                {entry.title && <h3>{entry.title}</h3>}
+
+                {/* 🔥 Mostrar el contenido de la entrada */}
+                <p className="entry-content">{entry.content}</p>
+
   
                 {/* 🔥 Botón de Like con marcador cuando está activo */}
                 <button

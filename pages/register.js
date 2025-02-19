@@ -11,6 +11,26 @@ export default function Register() {
   const [diaryTitle, setDiaryTitle] = useState("");
   const [isPrivate, setIsPrivate] = useState(true);
   const router = useRouter();
+  const [diaryLanguage, setDiaryLanguage] = useState("en"); // 🔥 Default: Inglés
+
+  const languages = [
+    { code: "en", name: "English" },
+    { code: "es", name: "Spanish" },
+    { code: "fr", name: "French" },
+    { code: "de", name: "German" },
+    { code: "it", name: "Italian" },
+    { code: "pt", name: "Portuguese" },
+    { code: "ru", name: "Russian" },
+    { code: "ja", name: "Japanese" },
+    { code: "zh", name: "Chinese" },
+    { code: "ar", name: "Arabic" },
+    { code: "hi", name: "Hindi" },
+    { code: "ko", name: "Korean" },
+    { code: "tr", name: "Turkish" },
+    { code: "nl", name: "Dutch" },
+    { code: "sv", name: "Swedish" },
+    { code: "cat", name: "Catalan"},
+  ];
 
   const handleRegister = async () => {
     try {
@@ -18,41 +38,43 @@ export default function Register() {
         alert("Username is required.");
         return;
       }
-
-      // 🔎 Verificar si el nombre de usuario ya existe en la base de datos
+  
+      // 🔎 Verificar si el username ya existe
       const usersRef = collection(db, "users");
       const q = query(usersRef, where("username", "==", username));
       const querySnapshot = await getDocs(q);
-
+  
       if (!querySnapshot.empty) {
         alert("Username already taken. Please choose another one.");
         return;
       }
-
+  
       // 🔥 Crear usuario en Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-
-      // 🔥 Generar un ID único para el diario
+  
+      // 🔥 Crear el diario en Firestore con el idioma seleccionado
       const diaryRef = await addDoc(collection(db, "diaries"), {
         userId: user.uid,
         title: diaryTitle || "My Diary",
         private: isPrivate,
+        language: diaryLanguage, // 🔥 Guardar el idioma seleccionado
       });
-
-      // 🔥 Guardar el usuario en Firestore
+  
+      // 🔥 Guardar la referencia del diario en el usuario
       await setDoc(doc(db, "users", user.uid), {
         email: user.email,
-        username: username, // Guardar el nombre de usuario
-        diaryId: diaryRef.id, // Vincular el diario
+        username: username, // Guardar el username
+        diaryId: diaryRef.id // Guardar la referencia del diario
       });
-
+  
       alert("User registered and diary created!");
       router.push("/diary");
     } catch (error) {
       alert(error.message);
     }
   };
+  
 
   return (
     <div className="container">
@@ -65,7 +87,17 @@ export default function Register() {
       <input type="text" placeholder="Diary Title" onChange={(e) => setDiaryTitle(e.target.value)} />
 
       <div style={{ display: "flex", alignItems: "center", gap: "10px", margin: "10px 0" }}>
-  <label style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "1rem" }}>
+      <h3>Language for Your Diary</h3>
+      <select value={diaryLanguage} onChange={(e) => setDiaryLanguage(e.target.value)}>
+        {languages.map((lang) => (
+          <option key={lang.code} value={lang.code}>
+            {lang.name}
+          </option>
+        ))}
+      </select>
+      <div></div>
+        <label style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "1rem" }}>
+    
   Private Diary: 
     <input
       type="checkbox"

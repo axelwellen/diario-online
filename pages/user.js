@@ -17,7 +17,28 @@ export default function UserSettings() {
   const [subscriptionRequests, setSubscriptionRequests] = useState([]);
   const [subscribers, setSubscribers] = useState([]); // 🔥 Lista de suscriptores
   const router = useRouter();
+  const [newDescription, setNewDescription] = useState("");
+  const [language, setLanguage] = useState("");
 
+  const languages = [
+    { code: "en", name: "English" },
+    { code: "es", name: "Spanish" },
+    { code: "fr", name: "French" },
+    { code: "de", name: "German" },
+    { code: "it", name: "Italian" },
+    { code: "pt", name: "Portuguese" },
+    { code: "ru", name: "Russian" },
+    { code: "ja", name: "Japanese" },
+    { code: "zh", name: "Chinese" },
+    { code: "ar", name: "Arabic" },
+    { code: "hi", name: "Hindi" },
+    { code: "ko", name: "Korean" },
+    { code: "tr", name: "Turkish" },
+    { code: "nl", name: "Dutch" },
+    { code: "sv", name: "Swedish" },
+    { code: "cat", name: "Catalan"},
+  ];
+  
   useEffect(() => {
     if (loading) return;
     if (!user) {
@@ -40,6 +61,7 @@ export default function UserSettings() {
     setUsername(userData.username || "");
     setNewUsername(userData.username || "");
     setDiaryId(userData.diaryId);
+    
 
     const diaryRef = doc(db, "diaries", userData.diaryId);
     const diarySnap = await getDoc(diaryRef);
@@ -51,6 +73,10 @@ export default function UserSettings() {
       setIsPrivate(diaryData.private);
       fetchSubscriptionRequests(userData.diaryId);
       fetchSubscribers(userData.diaryId); // 🔥 Obtener suscriptores
+      setNewDescription(diaryData.description || "");
+      setLanguage(diaryData.language || "en"); // 🔥 Cargar el idioma actual o inglés por defecto
+
+
     } else {
       alert("Diary not found.");
     }
@@ -121,14 +147,16 @@ export default function UserSettings() {
       alert("Error: No diary ID found.");
       return;
     }
-
+  
     try {
       const diaryRef = doc(db, "diaries", diaryId);
       await updateDoc(diaryRef, {
         title: newTitle,
         private: isPrivate,
+        description: newDescription, // 🔥 Guardamos la nueva descripción
+        language: language, // 🔥 Guardamos el idioma seleccionado
       });
-
+  
       alert("Diary updated!");
       router.push("/diary");
     } catch (error) {
@@ -136,6 +164,7 @@ export default function UserSettings() {
       alert("Failed to update diary.");
     }
   };
+  
 
   const handleUpdateUsername = async () => {
     if (!newUsername.trim()) {
@@ -201,6 +230,27 @@ export default function UserSettings() {
     placeholder="Diary Title"
     style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc" }}
   />
+  
+  <textarea
+    value={newDescription}
+    onChange={(e) => setNewDescription(e.target.value)}
+    placeholder="Add a description to your diary..."
+    style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", minHeight: "80px" }}
+  />
+
+  {/* 🔥 Selector de idioma */}
+  <label>Language</label>
+  <select 
+    value={language} 
+    onChange={(e) => setLanguage(e.target.value)}
+    style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc" }}
+  >
+    {languages.map((lang) => (
+      <option key={lang.code} value={lang.code}>
+        {lang.name}
+      </option>
+    ))}
+  </select>
 
   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
     <input 
@@ -212,12 +262,9 @@ export default function UserSettings() {
     <label>Private Diary</label>
   </div>
 
-  <button 
-    onClick={handleUpdateDiary} 
-  >
-    Save
-  </button>
+  <button onClick={handleUpdateDiary}>Save</button>
 </div>
+
 
 
       <h3>Pending Subscription Requests</h3>

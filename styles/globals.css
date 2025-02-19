@@ -172,6 +172,91 @@ input:focus, textarea:focus {
     .highlight {
         background: #ffebcc;
       }
+      .entry-content {
+        white-space: pre-line;
+      }
+      .entry-slider {
+        position: relative;
+        width: 100%;
+        max-width: 100%; /* 🔥 Mantiene el tamaño sin hacer la entrada más estrecha */
+      }
+      .diary-description {
+        font-style: italic;
+        color: #666;
+        margin-bottom: 10px;
+        max-width: 600px;
+      }
+      
+      
+      .arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 0; /* 🔥 Evitamos que el botón tenga tamaño extra */
+        height: 0;
+        background: none;
+        border: none;
+        cursor: pointer;
+        transition: opacity 0.2s, transform 0.2s ease-in-out;
+        padding: 0;
+      }
+      
+      /* 🔥 Flecha en forma de triángulo alargado */
+      .arrow::before {
+        content: "";
+        display: block;
+        width: 0;
+        height: 0;
+        border-style: solid;
+        cursor: pointer;
+      }
+      
+      /* 🔥 Flecha izquierda (más alargada y más cercana) */
+      .arrow.left-arrow::before {
+        border-width: 30px 35px 30px 0;  /* 🔥 Más alargada hacia arriba y abajo */
+        border-color: transparent #7c4ba0 transparent transparent;
+      }
+      
+      .arrow.right-arrow::before {
+        border-width: 30px 0 30px 35px;  /* 🔥 Más alargada hacia arriba y abajo */
+        border-color: transparent transparent transparent #7c4ba0;
+      }
+      
+      /* 🔥 Posicionamiento más cercano */
+      .arrow.left-arrow {
+        left: -50px; /* 🔥 Flechas más pegadas al entry */
+      }
+      
+      .arrow.right-arrow {
+        right: -20px;
+      }
+      
+      /* 🔥 Efecto hover: cambio de color */
+      .arrow:hover::before {
+        border-color: transparent transparent transparent #9a64bd;
+      }
+      
+      .arrow.left-arrow:hover::before {
+        border-color: transparent #9a64bd transparent transparent;
+      }
+      
+      /* 🔥 Flecha deshabilitada (sin hover) */
+      .arrow:disabled {
+        opacity: 0.3;
+        cursor: default;
+      }
+      
+      .arrow:disabled::before {
+        border-color: transparent transparent transparent #bbb;
+      }
+      
+      .arrow.left-arrow:disabled::before {
+        border-color: transparent #bbb transparent transparent;
+      }
+      
+      
+      
+      
 /* 🔥 Responsivo (Móvil) */
 @media (max-width: 768px) {
 

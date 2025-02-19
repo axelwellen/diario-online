@@ -2,7 +2,18 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/router";
 import { db } from "../lib/firebase";
-import { doc, collection, addDoc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { 
+  doc, 
+  collection, 
+  addDoc, 
+  getDoc, 
+  updateDoc, 
+  setDoc, 
+  getDocs, 
+  serverTimestamp, 
+  query, 
+  where 
+} from "firebase/firestore";
 import { signOut } from "firebase/auth";
 import { auth } from "../lib/firebase";
 
@@ -13,6 +24,7 @@ export default function Entry() {
   const [content, setContent] = useState("");
   const [diaryId, setDiaryId] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [title, setTitle] = useState("");
 
   useEffect(() => {
     if (loading) return;
@@ -41,18 +53,21 @@ export default function Entry() {
     }
   };
 
-  const fetchEntry = async () => {
-    if (!diaryId || !entryId) return;
-    const entryRef = doc(db, "diaries", diaryId, "entries", entryId);
-    const entrySnap = await getDoc(entryRef);
+const fetchEntry = async () => {
+  if (!diaryId || !entryId) return;
+  const entryRef = doc(db, "diaries", diaryId, "entries", entryId);
+  const entrySnap = await getDoc(entryRef);
 
-    if (entrySnap.exists()) {
-      setContent(entrySnap.data().content);
-    } else {
-      alert("Entry not found.");
-      router.push("/diary");
-    }
-  };
+  if (entrySnap.exists()) {
+    const entryData = entrySnap.data();
+    setTitle(entryData.title || ""); // Si no hay título, deja el campo vacío
+    setContent(entryData.content);
+  } else {
+    alert("Entry not found.");
+    router.push("/diary");
+  }
+};
+
 
   const handleSaveEntry = async () => {
     if (!user || !diaryId) {
@@ -77,15 +92,45 @@ export default function Entry() {
       // 📝 Crear nueva entrada
       const diaryRef = doc(db, "diaries", diaryId);
       await addDoc(collection(diaryRef, "entries"), {
+        title: title.trim() || "",
         content,
         date: serverTimestamp(),
       });
+      // 🔥 Notificar a los suscriptores
+      await notifySubscribers(diaryId, title, user.uid);
       alert("Entry added!");
     }
 
     router.push("/diary");
   };
+ // 📌 Función para notificar a los suscriptores
+ const notifySubscribers = async (diaryId, entryTitle, userId) => {
+  try {
+    // 🔍 Buscar suscriptores que tengan este diario en "subscriptions"
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("subscriptions", "array-contains", diaryId));
+    const subscribersSnap = await getDocs(q);
 
+    // 🔔 Notificar a cada suscriptor
+    const batchUpdates = subscribersSnap.docs.map(async (subscriberDoc) => {
+      const subscriberId = subscriberDoc.id;
+      const notificationRef = doc(db, "users", subscriberId, "notifications", diaryId);
+      await setDoc(notificationRef, {
+        diaryId,
+        diaryTitle: entryTitle || "New Entry",
+        unread: true,
+        sender: userId,
+        timestamp: serverTimestamp(),
+      }, { merge: true });
+    });
+
+    // Esperar a que todas las notificaciones se guarden
+    await Promise.all(batchUpdates);
+
+  } catch (error) {
+    console.error("Error sending notifications:", error);
+  }
+};
   const handleLogout = async () => {
     await signOut(auth);
     router.push("/login");
@@ -106,6 +151,14 @@ export default function Entry() {
       </nav>
 
       <h3>{isEditing ? "Edit Your Entry" : "Write a New Entry"}</h3>
+      <input
+        type="text"
+        placeholder="Title (optional)"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
+      />
+
       <textarea
         placeholder="Write your entry here..."
         value={content}

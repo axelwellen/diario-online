@@ -14,6 +14,8 @@ export default function EntryEditor() {
   const [content, setContent] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [corrections, setCorrections] = useState([]); // 🔥 Lista de correcciones
+  const [title, setTitle] = useState(""); // 📌 Nuevo estado para el título
+
 
   useEffect(() => {
     if (loading) return;
@@ -49,13 +51,16 @@ export default function EntryEditor() {
     const entrySnap = await getDoc(entryRef);
     
     if (entrySnap.exists()) {
-      setContent(entrySnap.data().content);
+      const entryData = entrySnap.data();
+      setTitle(entryData.title || ""); // 📌 Cargar título si existe, si no dejar vacío
+      setContent(entryData.content);
       setIsEditing(true);
     } else {
       alert("Entry not found.");
       router.push("/diary");
     }
-  };
+};
+
 
   const fetchCorrections = async () => {
     if (!diaryId || !entryId) return;
@@ -95,11 +100,15 @@ export default function EntryEditor() {
     try {
       if (isEditing) {
         const entryRef = doc(db, "diaries", diaryId, "entries", entryId);
-        await updateDoc(entryRef, { content });
+        await updateDoc(entryRef, { 
+          title: title.trim() || "",  // 📌 Guardar título opcional
+          content 
+        });
 
         alert("Entry updated!");
       } else {
         await addDoc(collection(db, "diaries", diaryId, "entries"), {
+          title: title.trim() || "",  // 📌 Guardar título opcional
           content,
           date: serverTimestamp(),
         });
@@ -110,7 +119,8 @@ export default function EntryEditor() {
       console.error("Error saving entry:", error);
       alert("Failed to save entry.");
     }
-  };
+};
+
 
   const handleDeleteEntry = async () => {
     if (!diaryId || !entryId) return;
@@ -157,6 +167,15 @@ export default function EntryEditor() {
       </nav>
 
       <h3>Edit Your Entry</h3>
+      {/* 📌 Nuevo campo para el título */}
+      <input
+        type="text"
+        placeholder="Title (optional)"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
+      />
+
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
